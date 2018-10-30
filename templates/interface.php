@@ -1,11 +1,11 @@
 <?php
 # source: {{ .Meta.Source }}
 
-namespace {{ .Class.Namespaced }};
+namespace {{ .Contract.Namespaced }};
 
 {{ range .CTX.Namespaces }}use {{ . }};{{ "\n" }}{{ end }}
 
-interface {{ .Class.Named }}
+interface {{ .Contract.Named }}
 {
 {{ range .Methods }}
     /**

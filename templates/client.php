@@ -1,11 +1,11 @@
 <?php
 # source: {{ .Meta.Source }}
 
-namespace {{ .Class.Namespaced }};
+namespace {{ .Client.Namespaced }};
 
 {{ range .CTX.Namespaces }}use {{ . }};{{ "\n" }}{{ end }}
 
-class {{ .Class.Named }} extends \Carno\RPC\Client implements {{ .Contracted }}
+class {{ .Client.Named }} extends \Carno\RPC\Client implements \{{ .Contract }}
 {
 {{ range .Methods }}
     /**

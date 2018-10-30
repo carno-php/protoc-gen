@@ -11,7 +11,7 @@ func MDClass(f *descriptor.FileDescriptorProto) ClassName {
 }
 
 func MDLoading(md *meta.Description) string {
-	return string(MDClass(md.File)) + "::init();"
+	return string("\\"+MDClass(md.File)) + "::init();"
 }
 
 func GPBUtil(ctx *Context) string {

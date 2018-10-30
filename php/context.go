@@ -9,24 +9,36 @@ import (
 type Context struct {
 	Meta     *meta.Description
 	Imported map[string]ClassName
+	Mastered map[string]ClassName
 }
 
 func NewContext(md *meta.Description) *Context {
 	return &Context{
 		Meta:     md,
 		Imported: make(map[string]ClassName),
+		Mastered: make(map[string]ClassName),
 	}
+}
+
+func (ctx *Context) Master(class ClassName) {
+	ctx.Mastered[string(class.Named())] = class
 }
 
 func (ctx *Context) Using(class ClassName) string {
 	named := string(class.Named())
 	used := ""
-	if imported, exists := ctx.Imported[named]; exists && imported != class {
+
+	_, mastered := ctx.Mastered[named]
+	imported, found := ctx.Imported[named]
+
+	if mastered || (found && imported != class) {
 		used = CRC32(string(class))
 	} else {
 		used = named
 	}
+
 	ctx.Imported[used] = class
+
 	return used
 }
 

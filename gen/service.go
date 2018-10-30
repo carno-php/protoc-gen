@@ -8,13 +8,13 @@ import (
 )
 
 type Service struct {
-	CTX        *php.Context
-	Meta       *meta.Description
-	Name       string
-	Class      php.ClassName
-	Package    string
-	Contracted string
-	Methods    []Method
+	CTX      *php.Context
+	Meta     *meta.Description
+	Name     string
+	Package  string
+	Client   php.ClassName
+	Contract php.ClassName
+	Methods  []Method
 }
 
 type Method struct {
@@ -27,11 +27,16 @@ type Method struct {
 func Services(md *meta.Description, dss ...*descriptor.ServiceDescriptorProto) {
 	for _, ds := range dss {
 		svc := Service{
-			CTX:     php.NewContext(md),
-			Meta:    md,
-			Name:    ds.GetName(),
-			Package: md.File.GetPackage(),
+			CTX:      php.NewContext(md),
+			Meta:     md,
+			Name:     ds.GetName(),
+			Package:  md.File.GetPackage(),
+			Client:   php.Namespace(php.Package(md.File), php.Class("Clients"), php.Class(ds.GetName())),
+			Contract: php.Namespace(php.Package(md.File), php.Class("Contracts"), php.Class(ds.GetName())),
 		}
+
+		svc.CTX.Master(svc.Client)
+		svc.CTX.Master(svc.Contract)
 
 		for _, m := range ds.GetMethod() {
 			m := Method{
@@ -42,11 +47,7 @@ func Services(md *meta.Description, dss ...*descriptor.ServiceDescriptorProto) {
 			svc.Methods = append(svc.Methods, m)
 		}
 
-		svc.Class = php.Namespace(php.Package(md.File), php.Class("Contracts"), php.Class(ds.GetName()))
-		template.Rendering(md.G, "interface.php", svc.Class, svc)
-
-		svc.Class = php.Namespace(php.Package(md.File), php.Class("Clients"), php.Class(ds.GetName()))
-		svc.Contracted = svc.CTX.Using(php.Namespace(php.Package(md.File), php.Class("Contracts"), php.Class(ds.GetName())))
-		template.Rendering(md.G, "client.php", svc.Class, svc)
+		template.Rendering(md.G, "interface.php", svc.Client, svc)
+		template.Rendering(md.G, "client.php", svc.Client, svc)
 	}
 }
