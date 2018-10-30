@@ -47,7 +47,7 @@ func Services(md *meta.Description, dss ...*descriptor.ServiceDescriptorProto) {
 			svc.Methods = append(svc.Methods, m)
 		}
 
-		template.Rendering(md.G, "interface.php", svc.Client, svc)
+		template.Rendering(md.G, "interface.php", svc.Contract, svc)
 		template.Rendering(md.G, "client.php", svc.Client, svc)
 	}
 }
