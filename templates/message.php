@@ -3,10 +3,9 @@
 
 namespace {{ .Class.Namespaced }};
 
-use Google\Protobuf\Internal\Message;
 {{ range .CTX.Namespaces }}use {{ . }};{{ "\n" }}{{ end }}
 
-class {{ .Class.Named }} extends Message
+class {{ .Class.Named }} extends \Google\Protobuf\Internal\Message
 {
 {{ range .Fields }}
     /**
@@ -22,15 +21,16 @@ class {{ .Class.Named }} extends Message
      */
     public function __construct(array $init = [])
     {
+        {{ .Meta | MDInit }}
         parent::__construct();
     }
 
 {{ range .Fields }}
     /**
      * {{ .Anno }}
-     * @return {{ .Type }}
+     * @return {{ .Type }}{{ if eq .Repeated true }}[]{{ end }}
      */
-    public function get{{ .Name | Titled }}() : {{ .Type }}
+    public function get{{ .Name | Titled }}() : {{ if eq .Repeated true }}array{{ else }}{{ .Type }}{{ end }}
     {
         return $this->{{ .Name }};
     }
@@ -42,7 +42,7 @@ class {{ .Class.Named }} extends Message
      */
     public function set{{ .Name | Titled }}({{ .Type }} {{ if eq .Repeated true }}...{{ end }}$var) : self
     {
-        $this->{{ .Name }} = $var;
+        $this->{{ .Name }} = {{ if .Mapped }}{{ $.GPBUtil }}::checkMapField($var, {{ .Mapped.Key }}, {{ .Mapped.Val }}){{ else }}$var{{ end }};
         return $this;
     }
 {{ end }}

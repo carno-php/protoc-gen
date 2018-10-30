@@ -42,5 +42,6 @@ func Execute(g *carno.Generator, file string, data interface{}) (string, error) 
 func funcMaps() template.FuncMap {
 	funcMap := sprig.TxtFuncMap()
 	funcMap["Titled"] = strings.Title
+	funcMap["MDInit"] = php.MDLoading
 	return funcMap
 }

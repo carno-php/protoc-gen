@@ -2,7 +2,6 @@ package gen
 
 import (
 	"encoding/hex"
-	"github.com/carno-php/protoc-gen/carno"
 	"github.com/carno-php/protoc-gen/meta"
 	"github.com/carno-php/protoc-gen/php"
 	"github.com/carno-php/protoc-gen/template"
@@ -13,22 +12,24 @@ import (
 )
 
 type GPBMeta struct {
-	CTX     *Context
+	CTX     *php.Context
 	Meta    *meta.Description
 	Class   php.ClassName
 	Imports []string
 	Lines   []string
 }
 
-func Metadata(g *carno.Generator, md *meta.Description, fd *protogen.FileDescriptor) {
+func Metadata(md *meta.Description, fd *protogen.FileDescriptor) {
 	gpb := &GPBMeta{
-		CTX:   NewContext(g, md),
+		CTX:   php.NewContext(md),
 		Meta:  md,
-		Class: php.Namespace(php.Package(md.File), php.Class("Metadata"), php.Protoc(fd.GetName()).Named()),
+		Class: php.MDClass(md.File),
 	}
 
 	for _, file := range fd.GetDependency() {
-		gpb.Imports = append(gpb.Imports, gpb.CTX.Using(php.Protoc(file)))
+		if imported, exists := md.G.GetFileD(file); exists {
+			gpb.Imports = append(gpb.Imports, gpb.CTX.Using(php.MDClass(imported.FileDescriptorProto)))
+		}
 	}
 
 	simplify := &descriptor.FileDescriptorProto{
@@ -57,5 +58,5 @@ func Metadata(g *carno.Generator, md *meta.Description, fd *protogen.FileDescrip
 		}
 	}
 
-	template.Rendering(g, "metadata.php", gpb.Class, gpb)
+	template.Rendering(md.G, "metadata.php", gpb.Class, gpb)
 }

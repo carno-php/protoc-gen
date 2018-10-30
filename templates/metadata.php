@@ -3,7 +3,6 @@
 
 namespace {{ .Class.Namespaced }};
 
-use Google\Protobuf\Internal\DescriptorPool;
 {{ range .CTX.Namespaces }}use {{ . }};{{ "\n" }}{{ end }}
 
 class {{ .Class.Named }}
@@ -19,9 +18,10 @@ class {{ .Class.Named }}
             return;
         }
 
-        {{ range .Imports }}{{ . }}::init();{{ "\n" }}{{ end }}
+        {{ range .Imports }}
+        {{ . }}::init();{{ end }}
 
-        DescriptorPool::getGeneratedPool()->internalAddGeneratedFile(hex2bin(
+        \Google\Protobuf\Internal\DescriptorPool::getGeneratedPool()->internalAddGeneratedFile(hex2bin(
         {{ range .Lines }}
             "{{ . }}" . {{ end }}
             ""

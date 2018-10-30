@@ -7,12 +7,14 @@ import (
 )
 
 type Description struct {
+	G      *carno.Generator
 	File   *descriptor.FileDescriptorProto
 	Source string
 }
 
 func Package(g *carno.Generator, d *protogen.FileDescriptor) *Description {
 	return &Description{
+		G:      g,
 		File:   d.FileDescriptorProto,
 		Source: d.GetName(),
 	}

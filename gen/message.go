@@ -1,7 +1,6 @@
 package gen
 
 import (
-	"github.com/carno-php/protoc-gen/carno"
 	"github.com/carno-php/protoc-gen/meta"
 	"github.com/carno-php/protoc-gen/php"
 	"github.com/carno-php/protoc-gen/template"
@@ -10,11 +9,12 @@ import (
 )
 
 type Message struct {
-	CTX    *Context
-	Meta   *meta.Description
-	Name   string
-	Class  php.ClassName
-	Fields []MField
+	CTX     *php.Context
+	Meta    *meta.Description
+	Name    string
+	Class   php.ClassName
+	Fields  []MField
+	GPBUtil string
 }
 
 type MField struct {
@@ -23,16 +23,24 @@ type MField struct {
 	Type     string
 	Default  string
 	Repeated bool
+	Mapped   *MMapped
 }
 
-func Messages(g *carno.Generator, md *meta.Description, dss ...*descriptor.DescriptorProto) {
+type MMapped struct {
+	Key string
+	Val string
+}
+
+func Messages(md *meta.Description, dss ...*descriptor.DescriptorProto) {
 	for _, ds := range dss {
 		msg := Message{
-			CTX:   NewContext(g, md),
+			CTX:   php.NewContext(md),
 			Meta:  md,
 			Name:  ds.GetName(),
 			Class: php.Namespace(php.Package(md.File), php.Class(ds.GetName())),
 		}
+
+		msg.GPBUtil = php.GPBUtil(msg.CTX)
 
 		for _, f := range ds.GetField() {
 			typed, defaults, _ := TypeExplains(msg.CTX, f)
@@ -42,14 +50,17 @@ func Messages(g *carno.Generator, md *meta.Description, dss ...*descriptor.Descr
 				Default:  defaults,
 				Repeated: TypeIsRepeated(f),
 			}
+			if typed == "array" {
+				TypeMapped(msg.CTX, &mf, f)
+			}
 			msg.Fields = append(msg.Fields, mf)
 		}
 
-		template.Rendering(g, "message.php", msg.Class, msg)
+		template.Rendering(md.G, "message.php", msg.Class, msg)
 	}
 }
 
-func TypeExplains(ctx *Context, fd *descriptor.FieldDescriptorProto) (typed, defaults string, comments []string) {
+func TypeExplains(ctx *php.Context, fd *descriptor.FieldDescriptorProto) (typed, defaults string, comments []string) {
 	switch fd.GetType() {
 	case descriptor.FieldDescriptorProto_TYPE_DOUBLE,
 		descriptor.FieldDescriptorProto_TYPE_FLOAT:
@@ -71,7 +82,12 @@ func TypeExplains(ctx *Context, fd *descriptor.FieldDescriptorProto) (typed, def
 	case descriptor.FieldDescriptorProto_TYPE_BOOL:
 		typed, defaults = "bool", "false"
 	case descriptor.FieldDescriptorProto_TYPE_MESSAGE:
-		typed, defaults = MessageImported(ctx, fd), "null"
+		msg := ctx.Meta.G.Message(fd.GetTypeName())
+		if msg.Descriptor.GetOptions().GetMapEntry() {
+			typed, defaults = "array", "[]"
+		} else {
+			typed, defaults = MessageImported(ctx, fd), "null"
+		}
 	case descriptor.FieldDescriptorProto_TYPE_ENUM:
 		comments = append(comments, "@see "+MessageImported(ctx, fd))
 		typed, defaults = "int", "0"
@@ -81,10 +97,31 @@ func TypeExplains(ctx *Context, fd *descriptor.FieldDescriptorProto) (typed, def
 	return
 }
 
+func TypeMapped(ctx *php.Context, mf *MField, f *descriptor.FieldDescriptorProto) {
+	mf.Repeated = false
+	msg := ctx.Meta.G.Message(f.GetTypeName())
+
+	key := ""
+	val := ""
+
+	for _, ff := range msg.Descriptor.GetField() {
+		if ff.GetName() == "key" {
+			key = php.GPBType(ctx, ff.GetType())
+		} else if ff.GetName() == "value" {
+			val = php.GPBType(ctx, ff.GetType())
+		}
+	}
+
+	mf.Mapped = &MMapped{
+		Key: key,
+		Val: val,
+	}
+}
+
 func TypeIsRepeated(fd *descriptor.FieldDescriptorProto) bool {
 	return fd.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED
 }
 
-func MessageImported(ctx *Context, fd *descriptor.FieldDescriptorProto) string {
-	return ctx.Using(php.Namespace(php.Package(ctx.Metadata.File), php.ClassName(fd.GetName())))
+func MessageImported(ctx *php.Context, fd *descriptor.FieldDescriptorProto) string {
+	return ctx.Using(php.Protoc(fd.GetTypeName()))
 }

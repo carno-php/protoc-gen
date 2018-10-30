@@ -3,10 +3,9 @@
 
 namespace {{ .Class.Namespaced }};
 
-use Carno\RPC\Client;
 {{ range .CTX.Namespaces }}use {{ . }};{{ "\n" }}{{ end }}
 
-class {{ .Class.Named }} extends Client implements API
+class {{ .Class.Named }} extends \Carno\RPC\Client implements {{ .Contracted }}
 {
 {{ range .Methods }}
     /**
@@ -16,7 +15,7 @@ class {{ .Class.Named }} extends Client implements API
      */
     public function {{ .Name }}({{ .Input }} $request)
     {
-        return $this->request('{{ .Package }}', '{{ .Service }}', '{{ .Name }}', $request, new {{ .Output }});
+        return $this->request('{{ $.Package }}', '{{ $.Name }}', '{{ .Name }}', $request, new {{ .Output }});
     }
 {{ end }}
 }

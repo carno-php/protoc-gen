@@ -97,11 +97,7 @@ func Namespace(pkg string, more ...ClassName) ClassName {
 }
 
 func MessageName(g *carno.Generator, t string) ClassName {
-	msg := g.CTX().Registry().MessageDefinition(t)
-
-	if msg == nil {
-		utils.Error("message definition not found", t)
-	}
+	msg := g.Message(t)
 
 	className := ""
 

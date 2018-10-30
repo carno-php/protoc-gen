@@ -1,7 +1,6 @@
 package gen
 
 import (
-	"github.com/carno-php/protoc-gen/carno"
 	"github.com/carno-php/protoc-gen/meta"
 	"github.com/carno-php/protoc-gen/php"
 	"github.com/carno-php/protoc-gen/template"
@@ -9,46 +8,45 @@ import (
 )
 
 type Service struct {
-	CTX        *Context
+	CTX        *php.Context
 	Meta       *meta.Description
 	Name       string
 	Class      php.ClassName
+	Package    string
 	Contracted string
 	Methods    []Method
 }
 
 type Method struct {
-	Package string
-	Service string
-	Anno    string
-	Name    string
-	Input   string
-	Output  string
+	Anno   string
+	Name   string
+	Input  string
+	Output string
 }
 
-func Services(g *carno.Generator, md *meta.Description, dss ...*descriptor.ServiceDescriptorProto) {
+func Services(md *meta.Description, dss ...*descriptor.ServiceDescriptorProto) {
 	for _, ds := range dss {
 		svc := Service{
-			CTX:  NewContext(g, md),
-			Meta: md,
-			Name: ds.GetName(),
+			CTX:     php.NewContext(md),
+			Meta:    md,
+			Name:    ds.GetName(),
+			Package: md.File.GetPackage(),
 		}
 
 		for _, m := range ds.GetMethod() {
 			m := Method{
-				Package: md.File.GetPackage(),
-				Service: svc.Name,
-				Name:    m.GetName(),
-				Input:   svc.CTX.Using(php.MessageName(g, m.GetInputType())),
-				Output:  svc.CTX.Using(php.MessageName(g, m.GetOutputType())),
+				Name:   m.GetName(),
+				Input:  svc.CTX.Using(php.MessageName(md.G, m.GetInputType())),
+				Output: svc.CTX.Using(php.MessageName(md.G, m.GetOutputType())),
 			}
 			svc.Methods = append(svc.Methods, m)
 		}
 
 		svc.Class = php.Namespace(php.Package(md.File), php.Class("Contracts"), php.Class(ds.GetName()))
-		template.Rendering(g, "interface.php", svc.Class, svc)
+		template.Rendering(md.G, "interface.php", svc.Class, svc)
 
 		svc.Class = php.Namespace(php.Package(md.File), php.Class("Clients"), php.Class(ds.GetName()))
-		template.Rendering(g, "client.php", svc.Class, svc)
+		svc.Contracted = svc.CTX.Using(php.Namespace(php.Package(md.File), php.Class("Contracts"), php.Class(ds.GetName())))
+		template.Rendering(md.G, "client.php", svc.Class, svc)
 	}
 }

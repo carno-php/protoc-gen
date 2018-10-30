@@ -1,31 +1,27 @@
-package gen
+package php
 
 import (
 	"fmt"
-	"github.com/carno-php/protoc-gen/carno"
 	"github.com/carno-php/protoc-gen/meta"
-	"github.com/carno-php/protoc-gen/php"
 	"hash/crc32"
 )
 
 type Context struct {
-	Generator *carno.Generator
-	Metadata  *meta.Description
-	Imported  map[string]php.ClassName
+	Meta     *meta.Description
+	Imported map[string]ClassName
 }
 
-func NewContext(g *carno.Generator, md *meta.Description) *Context {
+func NewContext(md *meta.Description) *Context {
 	return &Context{
-		Generator: g,
-		Metadata:  md,
-		Imported:  make(map[string]php.ClassName),
+		Meta:     md,
+		Imported: make(map[string]ClassName),
 	}
 }
 
-func (ctx *Context) Using(class php.ClassName) string {
+func (ctx *Context) Using(class ClassName) string {
 	named := string(class.Named())
 	used := ""
-	if _, exists := ctx.Imported[named]; exists {
+	if imported, exists := ctx.Imported[named]; exists && imported != class {
 		used = CRC32(string(class))
 	} else {
 		used = named
@@ -47,5 +43,5 @@ func (ctx *Context) Namespaces() []string {
 }
 
 func CRC32(input string) (output string) {
-	return fmt.Sprintf("%08x", crc32.ChecksumIEEE([]byte(input)))
+	return fmt.Sprintf("C_%08x", crc32.ChecksumIEEE([]byte(input)))
 }

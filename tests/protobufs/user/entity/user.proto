@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package carno.tests.user.entity;
+
+message User {
+    int64 id = 1;
+    string name = 2;
+    uint32 phone = 3;
+    float score = 7;
+    bool verify = 8;
+    bytes avatar = 9;
+}

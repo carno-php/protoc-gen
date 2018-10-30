@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package carno.tests.order.entity;
+
+import "user/entity/user.proto";
+
+message SKU {
+    uint32 no = 1;
+    string desc = 2;
+}
+
+message Order {
+    string orderID = 1;
+    carno.tests.user.entity.User user = 2;
+}

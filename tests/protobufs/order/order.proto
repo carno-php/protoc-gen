@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package carno.tests.order;
+
+import "order/entity/order.proto";
+import "user/entity/user.proto";
+
+message OrderRequest {
+    carno.tests.user.entity.User user = 2;
+    repeated int64 goodsIds = 3;
+    repeated carno.tests.order.entity.SKU skus = 4;
+    map<string, string> extras = 8;
+    uint32 timestamp = 9;
+}
+
+service Order {
+    rpc generate(OrderRequest) returns (carno.tests.order.entity.Order);
+}

@@ -1,7 +1,6 @@
 package gen
 
 import (
-	"github.com/carno-php/protoc-gen/carno"
 	"github.com/carno-php/protoc-gen/meta"
 	"github.com/carno-php/protoc-gen/php"
 	"github.com/carno-php/protoc-gen/template"
@@ -21,7 +20,7 @@ type EValue struct {
 	Val  int32
 }
 
-func Enums(g *carno.Generator, md *meta.Description, dss ...*descriptor.EnumDescriptorProto) {
+func Enums(md *meta.Description, dss ...*descriptor.EnumDescriptorProto) {
 	for _, ds := range dss {
 		enum := Enum{
 			Meta:  md,
@@ -36,6 +35,6 @@ func Enums(g *carno.Generator, md *meta.Description, dss ...*descriptor.EnumDesc
 			})
 		}
 
-		template.Rendering(g, "enum.php", enum.Class, enum)
+		template.Rendering(md.G, "enum.php", enum.Class, enum)
 	}
 }
