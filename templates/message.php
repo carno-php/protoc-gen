@@ -32,7 +32,15 @@ class {{ .Class.Named }} extends \Google\Protobuf\Internal\Message
      */
     public function get{{ .Name | Titled }}() : {{ if eq .Repeated true }}array{{ else }}{{ .Type }}{{ end }}
     {
+        {{ if eq .Repeated true }}
+        $list = [];
+        foreach ($this->{{ .Name }}->getIterator() as $item) {
+            $list[] = $item;
+        }
+        return $list;
+        {{ else }}
         return $this->{{ .Name }};
+        {{ end }}
     }
 
     /**
