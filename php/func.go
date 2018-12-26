@@ -99,15 +99,16 @@ func Namespace(pkg string, more ...ClassName) ClassName {
 func MessageName(g *carno.Generator, t string) ClassName {
 	msg := g.Message(t)
 
-	className := ""
+	class := ""
 
 	if lineage := msg.Lineage(); len(lineage) > 0 {
 		for _, parent := range lineage {
-			className += parent.Descriptor.GetName() + "_"
+			class += parent.Descriptor.GetName() + "_"
 		}
 	}
 
-	className += msg.Descriptor.GetName()
+	pkg := Package(msg.File)
+	class += msg.Descriptor.GetName()
 
-	return Namespace(Package(msg.File), ClassName(className))
+	return Namespace(pkg, ClassName(GPBFilter(pkg, class)))
 }

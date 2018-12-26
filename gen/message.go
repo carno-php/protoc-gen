@@ -1,6 +1,7 @@
 package gen
 
 import (
+	"fmt"
 	"github.com/carno-php/protoc-gen/meta"
 	"github.com/carno-php/protoc-gen/php"
 	"github.com/carno-php/protoc-gen/template"
@@ -48,7 +49,7 @@ func Messages(md *meta.Description, dss ...*descriptor.DescriptorProto) {
 				Name:     f.GetName(),
 				Type:     typed,
 				Default:  defaults,
-				Repeated: TypeIsRepeated(f),
+				Repeated: f.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED,
 			}
 			if typed == "array" {
 				TypeMapped(msg.CTX, &mf, f)
@@ -82,14 +83,13 @@ func TypeExplains(ctx *php.Context, fd *descriptor.FieldDescriptorProto) (typed,
 	case descriptor.FieldDescriptorProto_TYPE_BOOL:
 		typed, defaults = "bool", "false"
 	case descriptor.FieldDescriptorProto_TYPE_MESSAGE:
-		msg := ctx.Meta.G.Message(fd.GetTypeName())
-		if msg.Descriptor.GetOptions().GetMapEntry() {
+		if ctx.Meta.G.Message(fd.GetTypeName()).Descriptor.GetOptions().GetMapEntry() {
 			typed, defaults = "array", "[]"
 		} else {
-			typed, defaults = MessageImported(ctx, fd), "null"
+			typed, defaults = ctx.Using(php.MessageName(ctx.Meta.G, fd.GetTypeName())), "null"
 		}
 	case descriptor.FieldDescriptorProto_TYPE_ENUM:
-		comments = append(comments, "@see "+MessageImported(ctx, fd))
+		comments = append(comments, fmt.Sprintf("@see %s", ctx.Using(php.MessageName(ctx.Meta.G, fd.GetTypeName()))))
 		typed, defaults = "int", "0"
 	default:
 		utils.Error("unknown type for", fd.GetName())
@@ -116,12 +116,4 @@ func TypeMapped(ctx *php.Context, mf *MField, f *descriptor.FieldDescriptorProto
 		Key: key,
 		Val: val,
 	}
-}
-
-func TypeIsRepeated(fd *descriptor.FieldDescriptorProto) bool {
-	return fd.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED
-}
-
-func MessageImported(ctx *php.Context, fd *descriptor.FieldDescriptorProto) string {
-	return ctx.Using(php.Protoc(fd.GetTypeName()))
 }

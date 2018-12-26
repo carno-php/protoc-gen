@@ -7,7 +7,12 @@ import (
 )
 
 func MDClass(f *descriptor.FileDescriptorProto) ClassName {
-	return Namespace(Package(f), Class("Metadata"), Protoc(f.GetName()).Named())
+	pkg := Package(f)
+	if f.GetPackage() == "google.protobuf" {
+		class := ClassName(GPBFilter(pkg, string(Protoc(f.GetName()).Named())))
+		return Namespace(fmt.Sprintf("GPBMetadata.%s", pkg), class)
+	}
+	return Namespace(pkg, Class("Metadata"), Protoc(f.GetName()).Named())
 }
 
 func MDLoading(md *meta.Description) string {
@@ -62,4 +67,13 @@ func GPBType(ctx *Context, typ descriptor.FieldDescriptorProto_Type) string {
 	}
 
 	return fmt.Sprintf("%s::%s", base, expr)
+}
+
+func GPBFilter(pkg, class string) string {
+	if pkg == "google.protobuf" {
+		if class == "Empty" {
+			class = "GPBEmpty"
+		}
+	}
+	return class
 }
