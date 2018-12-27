@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/carno-php/protoc-gen/meta"
 	"hash/crc32"
+	"sort"
 )
 
 type Context struct {
@@ -44,6 +45,7 @@ func (ctx *Context) Using(class ClassName) string {
 
 func (ctx *Context) Namespaces() []string {
 	uses := make([]string, 0)
+
 	for alias, class := range ctx.Imported {
 		if string(class.Named()) == alias {
 			uses = append(uses, string(class))
@@ -51,6 +53,9 @@ func (ctx *Context) Namespaces() []string {
 			uses = append(uses, string(class)+" as "+alias)
 		}
 	}
+
+	sort.Strings(uses)
+
 	return uses
 }
 
