@@ -7,6 +7,7 @@ import (
 	"github.com/carno-php/protoc-gen/template"
 	"github.com/carno-php/protoc-gen/utils"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"strings"
 )
 
 type Message struct {
@@ -44,8 +45,9 @@ func Messages(md *meta.Description, dss ...*descriptor.DescriptorProto) {
 		msg.GPBUtil = php.GPBUtil(msg.CTX)
 
 		for _, f := range ds.GetField() {
-			typed, defaults, _ := TypeExplains(msg.CTX, f)
+			typed, defaults, comments := TypeExplains(msg.CTX, f)
 			mf := MField{
+				Anno:     strings.Join(comments, "\n"),
 				Name:     f.GetName(),
 				Type:     typed,
 				Default:  defaults,
@@ -89,7 +91,7 @@ func TypeExplains(ctx *php.Context, fd *descriptor.FieldDescriptorProto) (typed,
 			typed, defaults = ctx.Using(php.MessageName(ctx.Meta.G, fd.GetTypeName())), "null"
 		}
 	case descriptor.FieldDescriptorProto_TYPE_ENUM:
-		comments = append(comments, fmt.Sprintf("@see %s", ctx.Using(php.MessageName(ctx.Meta.G, fd.GetTypeName()))))
+		comments = append(comments, fmt.Sprintf("@see %s", ctx.Using(php.Protoc(fd.GetTypeName()))))
 		typed, defaults = "int", "0"
 	default:
 		utils.Error("unknown type for", fd.GetName())
