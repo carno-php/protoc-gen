@@ -9,9 +9,9 @@ RUN wget -qO- https://github.com/protocolbuffers/protobuf/releases/download/v${P
     unzip -d /usr/local - && \
     chmod a+x /usr/local/bin/protoc
 
-COPY --from=builder /build/protoc-gen /usr/bin
+COPY --from=builder /build/protoc-gen /usr/local/bin
 
-ADD gen-kit /usr/bin
+ADD gen-kit /usr/local/bin
 
 WORKDIR /protobufs
 

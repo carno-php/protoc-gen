@@ -2,4 +2,4 @@
 
 mkdir -p $1
 
-find $2 -name '*.proto' | xargs -I {} protoc --plugin=protoc-gen-custom=/usr/bin/protoc-gen --custom_out=$1 {}
+find $2 -name '*.proto' | xargs -I {} protoc --plugin=protoc-gen-custom=/usr/local/bin/protoc-gen --custom_out=$1 {}
