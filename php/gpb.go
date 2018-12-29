@@ -6,9 +6,11 @@ import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
 
+const PackageWKT = "google.protobuf"
+
 func MDClass(f *descriptor.FileDescriptorProto) ClassName {
 	pkg := Package(f)
-	if f.GetPackage() == "google.protobuf" {
+	if f.GetPackage() == PackageWKT {
 		class := ClassName(GPBFilter(pkg, string(Protoc(f.GetName()).Named())))
 		return Namespace(fmt.Sprintf("GPBMetadata.%s", pkg), class)
 	}
@@ -16,7 +18,7 @@ func MDClass(f *descriptor.FileDescriptorProto) ClassName {
 }
 
 func MDLoading(md *meta.Description) string {
-	return string("\\"+MDClass(md.File)) + "::init();"
+	return fmt.Sprintf("\\%s::init();", MDClass(md.File))
 }
 
 func GPBUtil(ctx *Context) string {
@@ -70,7 +72,7 @@ func GPBType(ctx *Context, typ descriptor.FieldDescriptorProto_Type) string {
 }
 
 func GPBFilter(pkg, class string) string {
-	if pkg == "google.protobuf" {
+	if pkg == PackageWKT {
 		if class == "Empty" {
 			class = "GPBEmpty"
 		}

@@ -15,8 +15,13 @@ type GPBMeta struct {
 	CTX     *php.Context
 	Meta    *meta.Description
 	Class   php.ClassName
-	Imports []string
+	Imports []Imported
 	Lines   []string
+}
+
+type Imported struct {
+	Class string
+	WKT   bool
 }
 
 func Metadata(md *meta.Description, fd *protogen.FileDescriptor) {
@@ -28,7 +33,10 @@ func Metadata(md *meta.Description, fd *protogen.FileDescriptor) {
 
 	for _, file := range fd.GetDependency() {
 		if imported, exists := md.G.GetFileD(file); exists {
-			gpb.Imports = append(gpb.Imports, gpb.CTX.Using(php.MDClass(imported.FileDescriptorProto)))
+			gpb.Imports = append(gpb.Imports, Imported{
+				Class: gpb.CTX.Using(php.MDClass(imported.FileDescriptorProto)),
+				WKT:   imported.GetPackage() == php.PackageWKT,
+			})
 		}
 	}
 

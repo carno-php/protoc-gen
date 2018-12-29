@@ -19,7 +19,7 @@ class {{ .Class.Named }}
         }
 
         {{ range .Imports }}
-        {{ . }}::init();{{ end }}
+        {{ .Class }}::{{ if eq .WKT true }}initOnce{{ else }}init{{ end }}();{{ end }}
 
         \Google\Protobuf\Internal\DescriptorPool::getGeneratedPool()->internalAddGeneratedFile(hex2bin(
         {{ range .Lines }}
