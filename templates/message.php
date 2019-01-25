@@ -26,6 +26,17 @@ class {{ .Class.Named }} extends \Google\Protobuf\Internal\Message
     }
 
 {{ range .Fields }}
+    {{ if eq .TSMessage true }}
+    /**
+     * {{ .Anno }}
+     * @return bool
+     */
+    public function has{{ .Name | Titled }}() : bool
+    {
+        return !! $this->{{ .Name }};
+    }
+    {{ end }}
+
     /**
      * {{ .Anno }}
      * @return {{ .Type }}{{ if eq .Repeated true }}[]{{ end }}

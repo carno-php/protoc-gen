@@ -20,12 +20,13 @@ type Message struct {
 }
 
 type MField struct {
-	Anno     string
-	Name     string
-	Type     string
-	Default  string
-	Repeated bool
-	Mapped   *MMapped
+	Anno      string
+	Name      string
+	Type      string
+	Default   string
+	Repeated  bool
+	Mapped    *MMapped
+	TSMessage bool
 }
 
 type MMapped struct {
@@ -47,11 +48,12 @@ func Messages(md *meta.Description, dss ...*descriptor.DescriptorProto) {
 		for _, f := range ds.GetField() {
 			typed, defaults, comments := TypeExplains(msg.CTX, f)
 			mf := MField{
-				Anno:     strings.Join(comments, "\n"),
-				Name:     f.GetName(),
-				Type:     typed,
-				Default:  defaults,
-				Repeated: f.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED,
+				Anno:      strings.Join(comments, "\n"),
+				Name:      f.GetName(),
+				Type:      typed,
+				Default:   defaults,
+				Repeated:  f.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED,
+				TSMessage: f.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE,
 			}
 			if typed == "array" {
 				TypeMapped(msg.CTX, &mf, f)
