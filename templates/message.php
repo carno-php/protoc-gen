@@ -26,7 +26,7 @@ class {{ .Class.Named }} extends \Google\Protobuf\Internal\Message
     }
 
 {{ range .Fields }}
-    {{ if eq .TSMessage true }}
+    {{ if and (eq .TSMessage true) (eq .Repeated false) }}
     /**
      * {{ .Anno }}
      * @return bool
